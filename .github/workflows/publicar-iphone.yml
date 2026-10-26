@@ -1,0 +1,45 @@
+name: Publicar M11 ANDERSON para iPhone
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extraer aplicación para iPhone
+        run: unzip -q -o M11_ANDERSON_IPHONE_PWA_V1.0.0.zip
+
+      - name: Verificar edición limpia
+        run: |
+          grep -q 'M11 Anderson' app/index.html
+          grep -q 'apple-mobile-web-app-capable' app/index.html
+          grep -q "name:'Campeonato por elegir'" app/js/lab-hub.js
+          test -f app/assets/apple-touch-icon.png
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app
+
+      - name: Publicar enlace
+        id: deployment
+        uses: actions/deploy-pages@v4
